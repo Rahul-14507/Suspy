@@ -1,4 +1,4 @@
-# MuleNet — AI/ML Mule Account Classifier
+# SuSpy — AI/ML Mule Account Classifier
 
 > **Hackathon Submission** · Problem Statement 2: AI/ML-Based Classification of Suspicious Mule Accounts
 
@@ -12,7 +12,7 @@
 
 Financial mule accounts are the conduit layer of money-laundering operations — controlled by criminals to receive and forward illicit funds while appearing legitimate on the surface. Detecting them requires separating a handful of bad actors from tens of thousands of normal accounts using only anonymised behavioural features.
 
-**MuleNet** is a layered machine-learning system designed to do exactly that. This submission delivers **Layers 1 and 2a** of the full vision: a production-ready feature engineering and XGBoost classification pipeline with SHAP-based explainability and a 0–100 **Dynamic Risk Index (DRI)** output. The full roadmap through a Graph Neural Network layer and an investigator dashboard is documented in [`docs/roadmap.md`](docs/roadmap.md).
+**SuSpy** is a layered machine-learning system designed to do exactly that. This submission delivers **Layers 1 and 2a** of the full vision: a production-ready feature engineering and XGBoost classification pipeline with SHAP-based explainability and a 0–100 **Dynamic Risk Index (DRI)** output. The full roadmap through a Graph Neural Network layer and an investigator dashboard is documented in [`docs/roadmap.md`](docs/roadmap.md).
 
 ---
 
@@ -34,7 +34,7 @@ Financial mule accounts are the conduit layer of money-laundering operations —
 
 ![Class Imbalance](docs/class_imbalance.png)
 
-The dataset presents a **111:1 class imbalance** — a realistic and severe challenge. MuleNet handles this via XGBoost's `scale_pos_weight` parameter (set to **110.8×**), which ensures the model is appropriately penalised for missing the rare positive class.
+The dataset presents a **111:1 class imbalance** — a realistic and severe challenge. SuSpy handles this via XGBoost's `scale_pos_weight` parameter (set to **110.8×**), which ensures the model is appropriately penalised for missing the rare positive class.
 
 | Metric | Value |
 |---|---|
@@ -76,7 +76,7 @@ Actual Mule    [    0     16  ]
 
 ## Explainability — SHAP
 
-A core requirement for compliance teams is **explainability**: investigators need to understand *why* an account was flagged. MuleNet integrates SHAP (SHapley Additive exPlanations) directly into the training pipeline.
+A core requirement for compliance teams is **explainability**: investigators need to understand *why* an account was flagged. SuSpy integrates SHAP (SHapley Additive exPlanations) directly into the training pipeline.
 
 ![SHAP Summary](docs/shap_summary.png)
 
@@ -112,7 +112,7 @@ The bimodal distribution (9,001 accounts at DRI ≈ 0, 81 accounts at DRI = 100)
 ## Project Structure
 
 ```
-Suspy/
+SuSpy/
 ├── data/                          # Dataset directory (CSV not committed)
 ├── docs/                          # Report assets, roadmap, charts
 │   ├── architecture.png
@@ -221,7 +221,7 @@ matplotlib>=3.7.0
 
 ## Roadmap
 
-See [`docs/roadmap.md`](docs/roadmap.md) for the full MuleNet vision:
+See [`docs/roadmap.md`](docs/roadmap.md) for the full SuSpy vision:
 
 - **Layer 2b**: GraphSAGE GNN to detect mule *rings* — accounts that look clean individually but sit inside a cluster of flagged nodes
 - **Layer 3**: DRI Fusion via a calibrated meta-learner, with temporal decay and network escalation logic

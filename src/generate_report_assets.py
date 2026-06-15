@@ -1,9 +1,3 @@
-"""
-MuleNet — Report Asset Generator
-Produces all visual assets for the hackathon report and README.
-Run after training: python src/generate_report_assets.py
-"""
-
 import json
 import os
 import sys
@@ -76,7 +70,7 @@ def plot_stats_banner():
                 fontsize=11, color=LIGHT, transform=ax.transAxes,
                 multialignment="center")
 
-    fig.suptitle("MuleNet — Model Performance at a Glance",
+    fig.suptitle("SuSpy — Model Performance at a Glance",
                  fontsize=14, fontweight="bold", color=LIGHT, y=1.02)
     plt.tight_layout(pad=0.5)
     path = os.path.join(DOCS_DIR, "stats_banner.png")
@@ -179,7 +173,7 @@ def plot_architecture():
     ax.set_xlim(0, 14); ax.set_ylim(0, 5)
     ax.axis("off")
 
-    fig.suptitle("MuleNet — Full Architecture Vision",
+    fig.suptitle("SuSpy — Full Architecture Vision",
                  fontsize=15, fontweight="bold", color=LIGHT, y=0.97)
 
     layers = [

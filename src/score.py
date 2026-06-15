@@ -1,13 +1,3 @@
-"""
-MuleNet MVP — Risk scoring / inference
-
-Loads a trained XGBoost model and scores new accounts, producing
-a 0-100 Dynamic Risk Index (DRI) and risk tier per account.
-
-Usage:
-    python src/score.py --data data/new_accounts.csv --model outputs/mule_classifier.json
-"""
-
 import argparse
 import json
 import os
@@ -82,7 +72,7 @@ def main(data_path: str, model_path: str, out_path: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Score accounts with trained MuleNet model")
+    parser = argparse.ArgumentParser(description="Score accounts with trained SuSpy model")
     parser.add_argument("--data", required=True, help="Path to dataset CSV (with or without target)")
     parser.add_argument("--model", default="outputs/mule_classifier.json", help="Path to trained model")
     parser.add_argument("--out", default="outputs/risk_scores.csv", help="Output CSV path")

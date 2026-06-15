@@ -1,5 +1,5 @@
 """
-MuleNet MVP — Mule Account Classifier
+SuSpy MVP — Mule Account Classifier
 Phase 1 hackathon proof-of-concept.
 
 Usage:
@@ -253,7 +253,7 @@ def main(data_path: str, sample_for_shap: int = 500):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train MuleNet MVP classifier")
+    parser = argparse.ArgumentParser(description="Train SuSpy MVP classifier")
     parser.add_argument("--data", required=True, help="Path to dataset CSV")
     parser.add_argument("--shap-sample", type=int, default=500,
                          help="Number of validation rows to use for SHAP plot")
