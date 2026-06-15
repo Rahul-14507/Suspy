@@ -4,5 +4,7 @@ __pycache__/
 .ipynb_checkpoints/
 outputs/*.json
 outputs/*.png
+outputs/*.csv
 .venv/
 *.egg-info/
+DataSet.csv

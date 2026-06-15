@@ -50,25 +50,40 @@ def load_data(path: str) -> pd.DataFrame:
     return df
 
 
-def basic_clean(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop columns that are entirely empty, fill remaining NAs with median."""
+def basic_clean(df: pd.DataFrame, medians: pd.Series = None) -> tuple[pd.DataFrame, pd.Series]:
+    """Drop columns that are entirely empty, drop index column, fill remaining NAs with median."""
     df = df.copy()
 
-    # Drop fully empty columns
-    empty_cols = df.columns[df.isna().all()]
-    if len(empty_cols) > 0:
-        print(f"Dropping {len(empty_cols)} fully-empty columns")
-        df = df.drop(columns=empty_cols)
+    # Drop index column if present (leakage fix)
+    if "Unnamed: 0" in df.columns:
+        df = df.drop(columns=["Unnamed: 0"])
+
+    if medians is None:
+        # Drop fully empty columns during training
+        empty_cols = df.columns[df.isna().all()]
+        if len(empty_cols) > 0:
+            print(f"Dropping {len(empty_cols)} fully-empty columns")
+            df = df.drop(columns=empty_cols)
+    else:
+        # Align columns to what medians has
+        expected_cols = list(medians.index)
+        if TARGET_COL in df.columns:
+            expected_cols = expected_cols + [TARGET_COL]
+        df = df.reindex(columns=expected_cols)
 
     # Coerce everything except target to numeric where possible
     feature_cols = [c for c in df.columns if c != TARGET_COL]
     for col in feature_cols:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
+        if not pd.api.types.is_numeric_dtype(df[col]):
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # Fill remaining NAs with column median
-    df[feature_cols] = df[feature_cols].fillna(df[feature_cols].median())
+    if medians is None:
+        medians = df[feature_cols].median()
 
-    return df
+    df[feature_cols] = df[feature_cols].fillna(medians)
+
+    return df, medians
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -194,11 +209,17 @@ def main(data_path: str, sample_for_shap: int = 500):
     os.makedirs(OUT_DIR, exist_ok=True)
 
     df = load_data(data_path)
-    df = basic_clean(df)
+    df, medians = basic_clean(df)
     df = engineer_features(df)
 
     y = df[TARGET_COL].astype(int)
     X = df.drop(columns=[TARGET_COL])
+
+    # Save medians and feature schema for scoring
+    medians.to_json(os.path.join(OUT_DIR, "medians.json"))
+    feature_names = list(X.columns)
+    with open(os.path.join(OUT_DIR, "feature_names.json"), "w") as f:
+        json.dump(feature_names, f, indent=2)
 
     X_train, X_val, y_train, y_val = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y

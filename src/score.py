@@ -9,6 +9,7 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import sys
 
@@ -35,10 +36,26 @@ def risk_tier(score: float) -> str:
 
 def main(data_path: str, model_path: str, out_path: str):
     df = pd.read_csv(data_path)
-    df_clean = basic_clean(df)
+
+    # Load medians and feature names from the model's directory
+    model_dir = os.path.dirname(model_path) or "outputs"
+    medians_path = os.path.join(model_dir, "medians.json")
+    feature_names_path = os.path.join(model_dir, "feature_names.json")
+
+    if os.path.exists(medians_path):
+        medians = pd.read_json(medians_path, typ="series")
+    else:
+        medians = None
+
+    df_clean, _ = basic_clean(df, medians=medians)
     df_feat = engineer_features(df_clean)
 
-    X = df_feat.drop(columns=[TARGET_COL], errors="ignore")
+    if os.path.exists(feature_names_path):
+        with open(feature_names_path, "r") as f:
+            feature_names = json.load(f)
+        X = df_feat.reindex(columns=feature_names)
+    else:
+        X = df_feat.drop(columns=[TARGET_COL], errors="ignore")
 
     model = xgb.XGBClassifier()
     model.load_model(model_path)
@@ -46,8 +63,9 @@ def main(data_path: str, model_path: str, out_path: str):
     proba = model.predict_proba(X)[:, 1]
     dri = (proba * 100).round(2)
 
+    acc_idx = df["Unnamed: 0"] if "Unnamed: 0" in df.columns else df.index
     results = pd.DataFrame({
-        "account_index": df.index,
+        "account_index": acc_idx,
         "risk_probability": proba,
         "DRI": dri,
         "risk_tier": [risk_tier(s) for s in dri],
