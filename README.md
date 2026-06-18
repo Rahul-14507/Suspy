@@ -1,4 +1,4 @@
-# SuSpy — AI/ML Mule Account Classifier
+# MuleNet — AI/ML Mule Account Classifier
 
 > **Hackathon Submission** · Problem Statement 2: AI/ML-Based Classification of Suspicious Mule Accounts
 
@@ -12,7 +12,7 @@
 
 Financial mule accounts are the conduit layer of money-laundering operations — controlled by criminals to receive and forward illicit funds while appearing legitimate on the surface. Detecting them requires separating a handful of bad actors from tens of thousands of normal accounts using only anonymised behavioural features.
 
-**SuSpy** is a layered machine-learning system designed to do exactly that. This submission delivers **Layers 1 and 2a** of the full vision: a production-ready feature engineering and XGBoost classification pipeline with SHAP-based explainability and a 0–100 **Dynamic Risk Index (DRI)** output. The full roadmap through a Graph Neural Network layer and an investigator dashboard is documented in [`docs/roadmap.md`](docs/roadmap.md).
+**MuleNet** is a layered machine-learning system designed to do exactly that. This submission delivers **Layers 1 and 2a** of the full vision: a production-ready feature engineering and XGBoost classification pipeline with SHAP-based explainability and a 0–100 **Dynamic Risk Index (DRI)** output. The full roadmap through a Graph Neural Network layer and an investigator dashboard is documented in [`docs/roadmap.md`](docs/roadmap.md).
 
 ---
 
@@ -34,7 +34,7 @@ Financial mule accounts are the conduit layer of money-laundering operations —
 
 ![Class Imbalance](docs/class_imbalance.png)
 
-The dataset presents a **111:1 class imbalance** — a realistic and severe challenge. SuSpy handles this via XGBoost's `scale_pos_weight` parameter (set to **110.8×**), which ensures the model is appropriately penalised for missing the rare positive class.
+The dataset presents a **111:1 class imbalance** — a realistic and severe challenge. MuleNet handles this via XGBoost's `scale_pos_weight` parameter (set to **110.8×**), which ensures the model is appropriately penalised for missing the rare positive class.
 
 | Metric | Value |
 |---|---|
@@ -48,35 +48,43 @@ The dataset presents a **111:1 class imbalance** — a realistic and severe chal
 
 ## Model Performance
 
-![ROC Curve](docs/roc_curve.png)
+Model performance is evaluated using stratified 5-fold cross-validation on the cleaned dataset (excluding target leakage proxies). The headline performance metrics at the optimal decision threshold of **0.30** are:
 
-| Metric | Value |
+| Metric | Cross-Validation Value (Mean ± Std) |
 |---|---|
-| **ROC-AUC** | **1.0000** |
-| **Average Precision** | **1.0000** |
-| **Recall (mule class)** | **1.00** (0 missed mule accounts) |
-| **Precision (mule class)** | **1.00** (0 false alarms) |
-| **Validation set size** | 1,817 accounts (20% stratified split) |
+| **ROC-AUC** | **0.9916** ± **0.0089** |
+| **Precision** | **96.17%** ± **5.04%** |
+| **Recall** | **85.15%** ± **3.19%** |
+| **F1-Score** | **0.9018** ± **0.0202** |
 
-The confusion matrix on the held-out validation set:
+This decision threshold of 0.30 was selected via a post-hoc cross-validation threshold sweep (from 0.30 to 0.50) rather than leaving it at the default 0.50 because it significantly improves recall (from 78.90% to 85.15%) with virtually no trade-off in precision and dramatically reduces the fold-to-fold variance.
+
+The confusion matrix on the held-out validation set (at threshold 0.30):
 
 ```
 Predicted →       Clean   Mule
 Actual Clean   [ 1801      0  ]
-Actual Mule    [    0     16  ]
+Actual Mule    [    1     15  ]
 ```
 
-**No false negatives.** Every mule account in the validation set was correctly flagged.
+### Validation Rigor
 
-### Precision-Recall Curve
+To ensure the integrity and robustness of the model, the following validation steps were performed:
+1. **Leakage Detection & Mitigation**: Diagnosed and dropped `Unnamed: 0` (which acted as an index proxy carrying strong target correlation) and `F3912` (which acted as a direct target proxy showing perfect separation).
+2. **Log Transformation**: Applied signed log-transforms to **2,166** highly skewed, heavy-tailed numeric features (skew > 5) with $\ge 6$ unique values, derived and applied strictly within each CV split to prevent statistics leakage.
+3. **Cross-Validation**: Utilized stratified 5-fold cross-validation instead of a single split to manage noise and evaluate the stability of performance on highly imbalanced data.
+4. **Post-Hoc Threshold Sweep**: Conducted a sweep of decision thresholds to optimize the balance between precision and recall, reducing false negatives in detection.
 
+### Precision-Recall and ROC Curves
+
+![ROC Curve](docs/roc_curve.png)
 ![PR Curve](docs/pr_curve.png)
 
 ---
 
 ## Explainability — SHAP
 
-A core requirement for compliance teams is **explainability**: investigators need to understand *why* an account was flagged. SuSpy integrates SHAP (SHapley Additive exPlanations) directly into the training pipeline.
+A core requirement for compliance teams is **explainability**: investigators need to understand *why* an account was flagged. MuleNet integrates SHAP (SHapley Additive exPlanations) directly into the training pipeline.
 
 ![SHAP Summary](docs/shap_summary.png)
 
@@ -100,19 +108,19 @@ Every account receives a **DRI score from 0 to 100** derived from the classifier
 
 | DRI Range | Tier | Count | Recommended Action |
 |---|---|---|---|
-| 0 – 30 | 🟢 **Low** | 9,001 | Normal monitoring |
-| 31 – 60 | 🔵 **Medium** | 0 | Enhanced transaction monitoring |
-| 61 – 80 | 🟡 **High** | 0 | Investigator alert + SHAP explanation |
-| 81 – 100 | 🔴 **Critical** | 81 | Immediate escalation + fraud network review |
+| 0 – 30 | 🟢 **Low** | 9,002 | Normal monitoring |
+| 31 – 60 | 🔵 **Medium** | 2 | Enhanced transaction monitoring |
+| 61 – 80 | 🟡 **High** | 1 | Investigator alert + SHAP explanation |
+| 81 – 100 | 🔴 **Critical** | 77 | Immediate escalation + fraud network review |
 
-The bimodal distribution (9,001 accounts at DRI ≈ 0, 81 accounts at DRI = 100) reflects the model's high confidence — consistent with the clean decision boundary observed in the ROC curve.
+The distribution reflects the model's high confidence, with 9,002 accounts safely categorized as Low risk, and a highly concentrated group of 77 accounts flagged as Critical risk. The remaining 3 accounts in the Medium/High range represent borderline cases suitable for prioritizing manual inspection.
 
 ---
 
 ## Project Structure
 
 ```
-SuSpy/
+MuleNet/
 ├── data/                          # Dataset directory (CSV not committed)
 ├── docs/                          # Report assets, roadmap, charts
 │   ├── architecture.png
@@ -221,7 +229,7 @@ matplotlib>=3.7.0
 
 ## Roadmap
 
-See [`docs/roadmap.md`](docs/roadmap.md) for the full SuSpy vision:
+See [`docs/roadmap.md`](docs/roadmap.md) for the full MuleNet vision:
 
 - **Layer 2b**: GraphSAGE GNN to detect mule *rings* — accounts that look clean individually but sit inside a cluster of flagged nodes
 - **Layer 3**: DRI Fusion via a calibrated meta-learner, with temporal decay and network escalation logic

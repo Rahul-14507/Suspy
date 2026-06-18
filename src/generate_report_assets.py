@@ -47,8 +47,8 @@ def plot_stats_banner():
     cards = [
         ("9,082",      "Accounts Scored",     TEAL),
         ("81",         "Mule Accounts\nFlagged (Critical)", RED),
-        ("1.000",      "ROC-AUC Score",        GREEN),
-        ("100%",       "Recall on\nValidation Set", AMBER),
+        ("0.9916",     "Mean CV ROC-AUC",      GREEN),
+        ("85.15%",     "Mean CV Recall\n(Threshold = 0.30)", AMBER),
     ]
 
     for ax, (val, label, colour) in zip(axes, cards):
@@ -70,7 +70,7 @@ def plot_stats_banner():
                 fontsize=11, color=LIGHT, transform=ax.transAxes,
                 multialignment="center")
 
-    fig.suptitle("SuSpy — Model Performance at a Glance",
+    fig.suptitle("MuleNet — Model Performance at a Glance",
                  fontsize=14, fontweight="bold", color=LIGHT, y=1.02)
     plt.tight_layout(pad=0.5)
     path = os.path.join(DOCS_DIR, "stats_banner.png")
@@ -173,7 +173,7 @@ def plot_architecture():
     ax.set_xlim(0, 14); ax.set_ylim(0, 5)
     ax.axis("off")
 
-    fig.suptitle("SuSpy — Full Architecture Vision",
+    fig.suptitle("MuleNet — Full Architecture Vision",
                  fontsize=15, fontweight="bold", color=LIGHT, y=0.97)
 
     layers = [

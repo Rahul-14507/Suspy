@@ -72,7 +72,7 @@ def main(data_path: str, model_path: str, out_path: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Score accounts with trained SuSpy model")
+    parser = argparse.ArgumentParser(description="Score accounts with trained MuleNet model")
     parser.add_argument("--data", required=True, help="Path to dataset CSV (with or without target)")
     parser.add_argument("--model", default="outputs/mule_classifier.json", help="Path to trained model")
     parser.add_argument("--out", default="outputs/risk_scores.csv", help="Output CSV path")
