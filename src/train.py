@@ -410,13 +410,15 @@ def run_pipeline(df: pd.DataFrame, exclude_features: list,
         train_stats[f"{col}_mean"] = float(X_train_t[col].mean())
         train_stats[f"{col}_std"] = float(X_train_t[col].std())
 
+    # Always set log_transforms so engineer_features applies them once
+    train_stats["log_transforms"] = transforms
+
     if save_artifacts:
-        train_stats["log_transforms"] = transforms
         with open(os.path.join(OUT_DIR, "train_stats.json"), "w") as f:
             json.dump(train_stats, f, indent=2)
 
-    X_tr_feat = engineer_features(X_train_t, train_stats)
-    X_vl_feat = engineer_features(X_val_t, train_stats)
+    X_tr_feat = engineer_features(X_train, train_stats)
+    X_vl_feat = engineer_features(X_val, train_stats)
 
     if save_artifacts:
         medians.to_json(os.path.join(OUT_DIR, "medians.json"))

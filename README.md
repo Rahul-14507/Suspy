@@ -152,53 +152,100 @@ SuSpy/
 └── README.md
 ```
 
----
+## Setup & Installation
 
-## Quickstart
+Follow these steps to set up the environment and install dependencies:
 
-### 1. Install dependencies
+### 1. Initialize Python Environment
+It is recommended to run the project inside a virtual environment to prevent dependency conflicts:
+```bash
+# Create a virtual environment
+python -m venv .venv
 
+# Activate the virtual environment
+# On Linux/macOS:
+source .venv/bin/activate
+# On Windows:
+.venv\Scripts\activate
+```
+
+### 2. Install Dependencies
+Install all required libraries using `pip`:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Place your dataset
-
+### 3. Place Your Dataset
+Copy your dataset CSV to the `data/` directory (the directories will be created automatically if they do not exist):
 ```bash
+mkdir -p data
 cp /path/to/your/dataset.csv data/dataset.csv
 ```
+> [!NOTE]
+> The training dataset must contain the target column `F3924` (0 = clean, 1 = suspicious/mule account). Raw features are coerced to numeric, empty columns are handled, and missing values are imputed during pipeline execution.
 
-The dataset must contain the target column `F3924` (0 = clean, 1 = mule).
+---
 
-### 3. Train the model
+## Model Training
+
+To train the classification model, run the training pipeline script. The pipeline performs leakage diagnosis, runs stratified 5-fold cross-validation with a decision threshold sweep, trains the final classifier, and saves metadata:
 
 ```bash
 python src/train.py --data data/dataset.csv
 ```
 
-**Outputs** saved to `outputs/`:
-- `suspy_classifier.json` — XGBoost model
-- `medians.json` + `feature_names.json` — preprocessing state for inference
-- `metrics.json` — full evaluation report
-- `roc_curve.png`, `pr_curve.png`, `feature_importance.png`, `shap_summary.png`
+### Custom Options:
+* `--data`: Path to the input dataset CSV (required).
+* `--shap-sample`: Number of validation rows to sample for the SHAP summary plot (default: 500). Set to a lower number (e.g., 10) for faster test runs.
 
-### 4. Score accounts
+### Training Artifacts Generated:
+All trained outputs are saved under the `outputs/` directory:
+- `suspy_classifier.json`: The trained XGBoost classifier model.
+- `medians.json`: Imputation medians computed during training (used to align inference data).
+- `feature_names.json`: The final preprocessed feature schema required by the model.
+- `train_stats.json`: Training feature statistics (means, standard deviations, and log-transform definitions).
+- `metrics.json`: Detailed performance metrics from final model validation.
+- Plot assets (`roc_curve.png`, `pr_curve.png`, `feature_importance.png`, `shap_summary.png`).
+
+---
+
+## Inference (Scoring Accounts)
+
+Once the model is trained, you can score new or unseen accounts to assess their risk levels. The inference script runs the same data cleaning, features engineering, and log-transform steps as the training script (using the saved states in `outputs/` to avoid data drift).
 
 ```bash
-python src/score.py --data data/dataset.csv --model outputs/suspy_classifier.json
+python src/score.py --data data/dataset.csv --model outputs/suspy_classifier.json --out outputs/risk_scores.csv
 ```
 
-**Output**: `outputs/risk_scores.csv` — every account ranked by DRI, with risk tier.
+### Arguments:
+* `--data`: Path to the input dataset CSV. The scoring script **handles both datasets with or without the target `F3924` column** (e.g. true unseen inference data).
+* `--model`: Path to the trained JSON model file (default: `outputs/suspy_classifier.json`).
+* `--out`: Path to save the ranked scored output CSV (default: `outputs/risk_scores.csv`).
 
-### 5. Generate report assets
+### Scoring Output Format:
+The output CSV contains the following columns ranked from highest DRI to lowest:
+1. `account_index`: The row index or identifier of the account.
+2. `risk_probability`: Raw model output probability (0.0 to 1.0) of being a mule account.
+3. `DRI`: Dynamic Risk Index score from 0.0 to 100.0 (probability × 100).
+4. `risk_tier`: The categorized risk bucket based on the DRI:
+   * 🟢 **Low** (DRI $\le$ 30) — Normal monitoring.
+   * 🔵 **Medium** (DRI 31 – 60) — Enhanced monitoring.
+   * 🟡 **High** (DRI 61 – 80) — Investigator alert + SHAP explainability.
+   * 🔴 **Critical** (DRI 81 – 100) — Immediate escalation.
+
+> [!IMPORTANT]
+> The optimal decision threshold determined via cross-validation is **0.30** (DRI 30), which maximizes recall while maintaining high precision. Any account classified as Medium, High, or Critical should be prioritized for manual inspection.
+
+---
+
+## Generating Visual Report Assets
+
+To regenerate all stylized charts and figures for reports and documentation (including the stats banner, DRI distribution, class imbalance, and vision architecture diagram):
 
 ```bash
 python src/generate_report_assets.py
 ```
-
-Regenerates all `docs/` charts from the current model and scores.
-
----
+This script reads the current model files and metrics in `outputs/` and overwrites the PNGs under `docs/` with the current values.
 
 ## Data Cleaning Pipeline
 
