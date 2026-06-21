@@ -1,5 +1,5 @@
 """
-MuleNet MVP — Mule Account Classifier
+SuSpy MVP — Mule Account Classifier
 Phase 1 hackathon proof-of-concept.
 
 Usage:
@@ -205,7 +205,7 @@ def evaluate(model, X_val, y_val, decision_threshold: float = 0.5):
 
 def plot_roc(y_val, proba, out_path):
     RocCurveDisplay.from_predictions(y_val, proba)
-    plt.title("ROC Curve — MuleNet Account Classifier")
+    plt.title("ROC Curve — SuSpy Account Classifier")
     plt.tight_layout()
     plt.savefig(out_path, dpi=120)
     plt.close()
@@ -217,7 +217,7 @@ def plot_pr(y_val, proba, out_path):
     plt.plot(recall, precision)
     plt.xlabel("Recall")
     plt.ylabel("Precision")
-    plt.title("Precision-Recall Curve — MuleNet Account Classifier")
+    plt.title("Precision-Recall Curve — SuSpy Account Classifier")
     plt.tight_layout()
     plt.savefig(out_path, dpi=120)
     plt.close()
@@ -433,7 +433,7 @@ def run_pipeline(df: pd.DataFrame, exclude_features: list,
         sample_n = min(500, len(X_vl_feat))
         plot_shap_summary(model, X_vl_feat.sample(sample_n, random_state=42),
                           os.path.join(OUT_DIR, "shap_summary.png"))
-        model.save_model(os.path.join(OUT_DIR, "mule_classifier.json"))
+        model.save_model(os.path.join(OUT_DIR, "suspy_classifier.json"))
 
     return metrics
 
@@ -548,7 +548,7 @@ def main(data_path: str, sample_for_shap: int = 500):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train MuleNet MVP classifier")
+    parser = argparse.ArgumentParser(description="Train SuSpy MVP classifier")
     parser.add_argument("--data", required=True, help="Path to dataset CSV")
     parser.add_argument("--shap-sample", type=int, default=500,
                         help="Number of validation rows to use for SHAP plot")

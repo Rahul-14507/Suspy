@@ -1,4 +1,4 @@
-# MuleNet — AI/ML Mule Account Classifier
+# SuSpy — AI/ML Mule Account Classifier
 
 > **Hackathon Submission** · Problem Statement 2: AI/ML-Based Classification of Suspicious Mule Accounts
 
@@ -12,7 +12,7 @@
 
 Financial mule accounts are the conduit layer of money-laundering operations — controlled by criminals to receive and forward illicit funds while appearing legitimate on the surface. Detecting them requires separating a handful of bad actors from tens of thousands of normal accounts using only anonymised behavioural features.
 
-**MuleNet** is a layered machine-learning system designed to do exactly that. This submission delivers **Layers 1 and 2a** of the full vision: a production-ready feature engineering and XGBoost classification pipeline with SHAP-based explainability and a 0–100 **Dynamic Risk Index (DRI)** output. The full roadmap through a Graph Neural Network layer and an investigator dashboard is documented in [`docs/roadmap.md`](docs/roadmap.md).
+**SuSpy** is a layered machine-learning system designed to do exactly that. This submission delivers **Layers 1 and 2a** of the full vision: a production-ready feature engineering and XGBoost classification pipeline with SHAP-based explainability and a 0–100 **Dynamic Risk Index (DRI)** output. The full roadmap through a Graph Neural Network layer and an investigator dashboard is documented in [`docs/roadmap.md`](docs/roadmap.md).
 
 ---
 
@@ -34,7 +34,7 @@ Financial mule accounts are the conduit layer of money-laundering operations —
 
 ![Class Imbalance](docs/class_imbalance.png)
 
-The dataset presents a **111:1 class imbalance** — a realistic and severe challenge. MuleNet handles this via XGBoost's `scale_pos_weight` parameter (set to **110.8×**), which ensures the model is appropriately penalised for missing the rare positive class.
+The dataset presents a **111:1 class imbalance** — a realistic and severe challenge. SuSpy handles this via XGBoost's `scale_pos_weight` parameter (set to **110.8×**), which ensures the model is appropriately penalised for missing the rare positive class.
 
 | Metric | Value |
 |---|---|
@@ -84,7 +84,7 @@ To ensure the integrity and robustness of the model, the following validation st
 
 ## Explainability — SHAP
 
-A core requirement for compliance teams is **explainability**: investigators need to understand *why* an account was flagged. MuleNet integrates SHAP (SHapley Additive exPlanations) directly into the training pipeline.
+A core requirement for compliance teams is **explainability**: investigators need to understand *why* an account was flagged. SuSpy integrates SHAP (SHapley Additive exPlanations) directly into the training pipeline.
 
 ![SHAP Summary](docs/shap_summary.png)
 
@@ -120,7 +120,7 @@ The distribution reflects the model's high confidence, with 9,002 accounts safel
 ## Project Structure
 
 ```
-MuleNet/
+SuSpy/
 ├── data/                          # Dataset directory (CSV not committed)
 ├── docs/                          # Report assets, roadmap, charts
 │   ├── architecture.png
@@ -135,7 +135,7 @@ MuleNet/
 ├── notebooks/
 │   └── exploration.ipynb          # EDA walkthrough
 ├── outputs/                       # Generated model artifacts
-│   ├── mule_classifier.json       # Trained XGBoost model
+│   ├── suspy_classifier.json       # Trained XGBoost model
 │   ├── medians.json               # Training imputation medians (for inference)
 │   ├── feature_names.json         # Training feature schema (for inference alignment)
 │   ├── metrics.json               # Evaluation metrics
@@ -177,7 +177,7 @@ python src/train.py --data data/dataset.csv
 ```
 
 **Outputs** saved to `outputs/`:
-- `mule_classifier.json` — XGBoost model
+- `suspy_classifier.json` — XGBoost model
 - `medians.json` + `feature_names.json` — preprocessing state for inference
 - `metrics.json` — full evaluation report
 - `roc_curve.png`, `pr_curve.png`, `feature_importance.png`, `shap_summary.png`
@@ -185,7 +185,7 @@ python src/train.py --data data/dataset.csv
 ### 4. Score accounts
 
 ```bash
-python src/score.py --data data/dataset.csv --model outputs/mule_classifier.json
+python src/score.py --data data/dataset.csv --model outputs/suspy_classifier.json
 ```
 
 **Output**: `outputs/risk_scores.csv` — every account ranked by DRI, with risk tier.
@@ -229,7 +229,7 @@ matplotlib>=3.7.0
 
 ## Roadmap
 
-See [`docs/roadmap.md`](docs/roadmap.md) for the full MuleNet vision:
+See [`docs/roadmap.md`](docs/roadmap.md) for the full SuSpy vision:
 
 - **Layer 2b**: GraphSAGE GNN to detect mule *rings* — accounts that look clean individually but sit inside a cluster of flagged nodes
 - **Layer 3**: DRI Fusion via a calibrated meta-learner, with temporal decay and network escalation logic

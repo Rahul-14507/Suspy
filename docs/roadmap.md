@@ -1,4 +1,4 @@
-# Roadmap — MuleNet Full Vision
+# Roadmap — SuSpy Full Vision
 
 This MVP covers Layer 1 (feature engineering) and Layer 2a (XGBoost classifier
 with SHAP explainability). The full proposed solution adds two further layers:

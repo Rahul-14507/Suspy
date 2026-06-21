@@ -70,7 +70,7 @@ def plot_stats_banner():
                 fontsize=11, color=LIGHT, transform=ax.transAxes,
                 multialignment="center")
 
-    fig.suptitle("MuleNet — Model Performance at a Glance",
+    fig.suptitle("SuSpy — Model Performance at a Glance",
                  fontsize=14, fontweight="bold", color=LIGHT, y=1.02)
     plt.tight_layout(pad=0.5)
     path = os.path.join(DOCS_DIR, "stats_banner.png")
@@ -173,7 +173,7 @@ def plot_architecture():
     ax.set_xlim(0, 14); ax.set_ylim(0, 5)
     ax.axis("off")
 
-    fig.suptitle("MuleNet — Full Architecture Vision",
+    fig.suptitle("SuSpy — Full Architecture Vision",
                  fontsize=15, fontweight="bold", color=LIGHT, y=0.97)
 
     layers = [
@@ -234,7 +234,7 @@ def plot_top_features_styled():
     """Styled version of top features using gain from the saved model."""
     import xgboost as xgb
     model = xgb.XGBClassifier()
-    model.load_model(os.path.join(OUT_DIR, "mule_classifier.json"))
+    model.load_model(os.path.join(OUT_DIR, "suspy_classifier.json"))
     booster = model.get_booster()
     importance = booster.get_score(importance_type="gain")
     sorted_imp = sorted(importance.items(), key=lambda x: x[1], reverse=True)[:15]
